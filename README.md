@@ -1,1 +1,1 @@
-Usage: sudo bash bash.sh sendFrom@domain.com yourdomain.com
+Usage: sudo bash bash.sh <path to domain_* files>
