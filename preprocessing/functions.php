@@ -31,11 +31,13 @@ function separateDomains($filepath, $invalidEmailsPath, $pathprefix) {
 function mergeFiles($toFile, $fromFile) {
     $handleFrom = fopen($fromFile, "r");
     if ($handleFrom) {
+        $linesCnt = 0;
         while (($line = fgets($handleFrom)) !== false) {
+            $linesCnt++;
             file_put_contents($toFile, $line, FILE_APPEND | LOCK_EX);
         }
     } else {
-        return false;
+        return 0;
     }
-    return true;
+    return $linesCnt;
 }

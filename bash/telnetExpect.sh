@@ -2,16 +2,29 @@ set timeout 10
 
 set filename    [lindex $argv 0]
 set domain      [lindex $argv 1]
-set hostName    [lindex $argv 2]
-set emailFrom   [lindex $argv 3]
-set heloDomain  [lindex $argv 4]
+set mxAddr      [lindex $argv 2]
+set basePath    [lindex $argv 3]
+
+proc randomRangeString {length {chars "abcdefghijklmnopqrstuvwxyz"}} {
+    set range [expr {[string length $chars]-1}]
+
+    set txt ""
+    for {set i 0} {$i < $length} {incr i} {
+       set pos [expr {int(rand()*$range)}]
+       append txt [string range $chars $pos $pos]
+    }
+    return $txt
+}
 
 
-proc pingEmail {email pathValid pathInvalid domain emailFrom heloDomain} {
+proc pingEmail {email pathValid pathInvalid domain basePath} {
+    set emailFrom [randomRangeString 10]@gmail.com
+    set heloDomain [randomRangeString 10].com
+
     send "HELO $heloDomain\r"
     expect {
         -re "(^|\n)250.*" { }
-        -re "(^|\n)5\[0-9]\[0-9].*" {print_problem_domain 1$domain $expect_out(0,string) $expect_out(buffer)
+        -re "(^|\n)5\[0-9]\[0-9].*" {print_problem_domain 1$domain $expect_out(0,string) $basePath
                           expect *
                           exit 2}
     }
@@ -19,7 +32,7 @@ proc pingEmail {email pathValid pathInvalid domain emailFrom heloDomain} {
     send "MAIL FROM:<$emailFrom>\r"
     expect {
         -re "(^|\n)250.*" { }
-        -re "(^|\n)5\[0-9]\[0-9].*" {print_problem_domain 2$domain $expect_out(0,string) $expect_out(buffer)
+        -re "(^|\n)5\[0-9]\[0-9].*" {print_problem_domain 2$domain $expect_out(0,string) $basePath
                           expect *
                           exit 2}
     }
@@ -34,7 +47,7 @@ proc pingEmail {email pathValid pathInvalid domain emailFrom heloDomain} {
             puts $validOut $email
             close $validOut
         }
-        -re "(^|\n)550 5.7.1 Service unavailable.*" {print_problem_domain 3$domain $expect_out(0,string) $expect_out(buffer)
+        -re "(^|\n)550 5.7.1 Service unavailable.*" {print_problem_domain 3$domain $expect_out(0,string) $basePath
                          exit 2}
         -re "(^|\n)550.*" {
             send_user "\n\n $email : INVALID \n\n"
@@ -44,7 +57,7 @@ proc pingEmail {email pathValid pathInvalid domain emailFrom heloDomain} {
             close $invalidOut
         }
 
-        -re "(^|\n)5\[0-9]\[0-9].*" {print_problem_domain 3$domain $expect_out(0,string) $expect_out(buffer)
+        -re "(^|\n)5\[0-9]\[0-9].*" {print_problem_domain 3$domain $expect_out(0,string) $basePath
                           expect *
                           exit 2}
     }
@@ -52,8 +65,8 @@ proc pingEmail {email pathValid pathInvalid domain emailFrom heloDomain} {
 
 
 
-proc print_problem_domain {domain message message2} {
-    set path _problem_domains
+proc print_problem_domain {domain message basePath} {
+    set path ${basePath}_problem_domains
     set fileOut  [open $path a]
     puts $fileOut "$domain >>> $message\n\n\n"
     close $fileOut
@@ -74,15 +87,14 @@ close $f
 # Create output files
 #set pathValid   valid_$domain
 #set pathInvalid invalid_$domain
-set pathValid   _valid_emails
-set pathInvalid _invalid_emails
-
+set pathValid   ${basePath}_valid_emails
+set pathInvalid ${basePath}_invalid_emails
 
 # Start telnet
 spawn torify wget http://ipinfo.io/ip -qO -
 expect  { * send_user Public ip: $expect_out(0,string) }
 
-spawn torify telnet $hostName 25
+spawn torify telnet $mxAddr 25
 expect -re ".*Trying"
 
 expect {
@@ -90,13 +102,13 @@ expect {
         # Iterate over the emails
         foreach email $emails {
             if { [ string length $email ] != 0 } {      # email length != 0
-                pingEmail $email $pathValid $pathInvalid $domain $emailFrom $heloDomain
+                pingEmail $email $pathValid $pathInvalid $domain $basePath
                 #send_user "$email\n"
             }
             
         }
     }
-    -re "(^|\n)5\[0-9]\[0-9].*" {print_problem_domain 4$domain $expect_out(0,string) $expect_out(buffer)
+    -re "(^|\n)5\[0-9]\[0-9].*" {print_problem_domain 4$domain $expect_out(0,string) $basePath
                           expect *
                           exit 2}
     timeout  { send_user "Timed out during telnet\n"; exit 1 }

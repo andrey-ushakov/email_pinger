@@ -1,16 +1,26 @@
 #!/bin/bash
 
-emailFrom=$1
-heloDomain=$2
+pathBase=$1
 
-logfile=_log
-invalidDomainsFile=_invalid_domains
+logfile=${pathBase}_log
+invalidDomainsFile=${pathBase}_invalid_domains
+problem_domains=${pathBase}_problem_domains
+
+printf "$logfile\n"
+printf "$invalidDomainsFile\n"
+printf "$problem_domains\n"
+
+#logfile=$pathBase$logfile
+#invalidDomainsFile=$pathBase$invalidDomainsFile
+#problem_domains=$pathBase$problem_domains
+
 
 count=0
 
 function verifyEmailsFromFile {
 	filename=$1
-    domain=${filename#domain_}
+
+    domain=${filename#${pathBase}domain_}
 	mxStr=$(dig $domain mx +short)
 
 	IFS=' ' read -r -a mxArray <<< "$mxStr"
@@ -24,18 +34,18 @@ function verifyEmailsFromFile {
 
 	mxAddr=${mxArray[1]}
 	mxAddr=${mxAddr%.}		# remove last point '.'
-	echo $mxAddr
+	printf "mx: $mxAddr\n"
 	#printf "domain: $domain\n" >> $logfile
 	printf "mx: $mxAddr\n" >> $logfile
 
-	expect telnetExpect.sh $filename $domain $mxAddr $emailFrom $heloDomain
+	expect telnetExpect.sh $filename $domain $mxAddr $pathBase
 	res=$?
 
 	if [ $res -eq 1 ]
 		then
 			((count=count+1))
 
-			if [ $count -lt 6 ]
+			if [ $count -lt 4 ]
 				then
 					printf "telnet timeout $count\n" >> $logfile
                     printf "timeout $count... file: $filename"
@@ -64,7 +74,7 @@ function verifyEmailsFromFile {
 
 
 # Get file list
-IN_FILES=($(ls domain_*))
+IN_FILES=($(ls ${pathBase}domain_*))
 qty=${#IN_FILES[@]};
 
 for filename in "${IN_FILES[@]}"
@@ -88,7 +98,7 @@ do
 	# Log timeout
     if [ $res -eq 1 ]
         then
-       		printf "$filename : timeout : $res\n\n\n" >> _problem_domains
+       		printf "$filename : timeout : $res\n\n\n" >> $problem_domains
 	fi
 done
 
