@@ -1,1 +1,1 @@
-Usage: sudo bash bash.sh <path to domain_* files>
+Usage: sudo bash bash.sh "path/to/domain_*/files"
