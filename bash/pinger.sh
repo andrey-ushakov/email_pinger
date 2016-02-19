@@ -2,17 +2,11 @@
 
 pathBase=$1
 
+START_TIME=$(date +%s)
+
 logfile=${pathBase}_log
 invalidDomainsFile=${pathBase}_invalid_domains
 problem_domains=${pathBase}_problem_domains
-
-printf "$logfile\n"
-printf "$invalidDomainsFile\n"
-printf "$problem_domains\n"
-
-#logfile=$pathBase$logfile
-#invalidDomainsFile=$pathBase$invalidDomainsFile
-#problem_domains=$pathBase$problem_domains
 
 
 count=0
@@ -34,7 +28,7 @@ function verifyEmailsFromFile {
 
 	mxAddr=${mxArray[1]}
 	mxAddr=${mxAddr%.}		# remove last point '.'
-	printf "mx: $mxAddr\n"
+	printf "\nmx: $mxAddr\n"
 	#printf "domain: $domain\n" >> $logfile
 	printf "mx: $mxAddr\n" >> $logfile
 
@@ -64,7 +58,7 @@ function verifyEmailsFromFile {
 	#    res=$?
 	#done
 
-	count=0
+	count=1
 	printf "telnet finished\n" >> $logfile
 
 	return $res
@@ -77,10 +71,12 @@ function verifyEmailsFromFile {
 IN_FILES=($(ls ${pathBase}domain_*))
 qty=${#IN_FILES[@]};
 
+ind=0
 for filename in "${IN_FILES[@]}"
 do
-	printf "\n\n\n\n\n.......START file: $filename\n"
-	printf ".......START file: $filename\n" >> $logfile
+	((ind++))
+	printf "\n\n\n\n\n.......START file ($ind / $qty): $filename\n"
+	printf ".......START file ($ind / $qty): $filename\n" >> $logfile
 
 	verifyEmailsFromFile $filename
 	res=$?
@@ -102,4 +98,19 @@ do
 	fi
 done
 
+chmod 777 $logfile
+chmod 777 $invalidDomainsFile
+chmod 777 $problem_domains
+chmod 777 ${pathBase}_valid_emails
+chmod 777 ${pathBase}_invalid_emails
+
+printf "done" >> ${pathBase}_done
+chmod 777 ${pathBase}_done
+
 printf "ALL FILES FINISHED\n"
+
+#time
+END_TIME=$(date +%s)
+DIFF=$(( END_TIME - $START_TIME ))
+printf "Execution time: $DIFF seconds\n"
+printf "Execution time: $DIFF seconds\n" >> $logfile

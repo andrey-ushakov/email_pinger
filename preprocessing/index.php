@@ -2,17 +2,27 @@
 include_once "./functions.php";
 
 
-echo "<pre>";
+date_default_timezone_set('Europe/Paris');
+$timestart          =   microtime(true);
 
 error_reporting(E_ALL);
 ini_set('display_errors', true);
 
-$pathprefix         = "../data/";
-$filepath           = $pathprefix."email";
+if(!isset($_GET["dataPath"])) {
+    echo "ERROR: dataPath wasn't provided";
+    exit;
+}
+$pathprefix = $_GET["dataPath"];
+
+
+echo "<pre>";
+
+//$pathprefix         = "../data/";
+$filepath           = $pathprefix."emails";
 $invalidEmailsPath  = $pathprefix."_invalid_emails";
 $invalidDomainsPath = $pathprefix."_invalid_domains";
 //$validEmailsPath    = "_valid_emails";
-$emailsInFolder     =   200;
+$maxEmailsNumInFolder     =   5000;
 
 
 echo "Preprocessing start...<br/>";
@@ -29,8 +39,12 @@ $i                      = 0;
 $invalidDomainsCount    = 0;
 
 $folderInd              = 1;
-$emailsInCurFolder      = 0;
-mkdir($pathprefix."src$folderInd");
+$emailsNumInFolderArr   = array();
+
+// create src1 dir
+createDir($pathprefix."src$folderInd");
+$emailsNumInFolderArr[$pathprefix."src$folderInd"] = 0;
+
 foreach ($filesArr as $file => $domain) {
     echo "File " . ++$i . " : " . $file . "<br/>";
 
@@ -46,17 +60,19 @@ foreach ($filesArr as $file => $domain) {
     }
     // 3. Place domains in folders
     else {
-        if($emailsInCurFolder >= $emailsInFolder) {
-            $folderInd++;
-            $emailsInCurFolder = 0;
-            mkdir($pathprefix."src$folderInd");
-        }
         $curFolderName = $pathprefix."src$folderInd";
+
+        if($emailsNumInFolderArr[$curFolderName] >= $maxEmailsNumInFolder) {
+            $folderInd++;
+            $curFolderName = $pathprefix."src$folderInd";
+            $emailsNumInFolderArr[$curFolderName] = 0;
+            createDir($pathprefix."src$folderInd");
+        }
         // replace file
         $linesCnt = count(file($file));
         rename($file, "$curFolderName/".basename($file));
         chmod("$curFolderName/".basename($file), 0777);
-        $emailsInCurFolder += $linesCnt;
+        $emailsNumInFolderArr[$curFolderName] += $linesCnt;
         echo "Placed to folder : $curFolderName/ <br/>";
     }
     echo("Finished<br/><br/>");
@@ -65,9 +81,18 @@ foreach ($filesArr as $file => $domain) {
 
 echo "Preprocessing done...<br/>";
 echo "Total domains found : $totalDomainsCount <br/>";
-echo "Invalid domins : $invalidDomainsCount <br/>";
+echo "Invalid domains : $invalidDomainsCount <br/><br/>";
+
+echo "Emails num in folders: <br/>";
+print_r($emailsNumInFolderArr);
 
 
-
+// Execution time
+$timeend    =   microtime(true);
+$time       =   $timeend-$timestart;
+$page_load_time = number_format($time, 3);
+echo "Script started at: ".date("H:i:s", $timestart);
+echo "<br>Script finished at: ".date("H:i:s", $timeend);
+echo "<br>Execution time: " . $page_load_time . " sec";
 
 echo "</pre>";

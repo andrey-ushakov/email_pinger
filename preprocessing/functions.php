@@ -1,7 +1,7 @@
 <?php
 function separateDomains($filepath, $invalidEmailsPath, $pathprefix) {
     $filesArr = array();
-    $listSize = count(file($filepath));
+    //$listSize = count(file($filepath));
     $handle = fopen($filepath, "r");
     //$i = 0;
     if ($handle) {
@@ -40,4 +40,11 @@ function mergeFiles($toFile, $fromFile) {
         return 0;
     }
     return $linesCnt;
+}
+
+
+function createDir($dirPath) {
+    $oldmask = umask(0);
+    mkdir($dirPath, 0777);
+    umask($oldmask);
 }
