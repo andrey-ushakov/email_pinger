@@ -9,7 +9,7 @@ invalidDomainsFile=${pathBase}_invalid_domains
 problem_domains=${pathBase}_problem_domains
 
 
-count=0
+count=1
 
 function verifyEmailsFromFile {
 	filename=$1
@@ -28,9 +28,7 @@ function verifyEmailsFromFile {
 
 	mxAddr=${mxArray[1]}
 	mxAddr=${mxAddr%.}		# remove last point '.'
-	printf "\nmx: $mxAddr\n"
-	#printf "domain: $domain\n" >> $logfile
-	printf "mx: $mxAddr\n" >> $logfile
+	printf "telnet: $mxAddr\n" >> $logfile
 
 	expect telnetExpect.sh $filename $domain $mxAddr $pathBase
 	res=$?
@@ -38,25 +36,16 @@ function verifyEmailsFromFile {
 	if [ $res -eq 1 ]
 		then
 			((count=count+1))
+			printf "telnet timeout. Restart $count \n" >> $logfile
+            printf "telnet timeout. Restart $count \n"
 
 			if [ $count -lt 4 ]
 				then
-					printf "telnet timeout $count\n" >> $logfile
-                    printf "timeout $count... file: $filename"
-
 					verifyEmailsFromFile $filename
 					res=$?
 					return $res
 			fi
 	fi
-
-	#while [ $res -eq 1 ]
-	#do
-	#    printf "telnet timeout\n" >> $logfile
-	#    echo "timeout... file: $filename"
-	#    expect telnetExpect.sh $filename $domain $mxAddr
-	#    res=$?
-	#done
 
 	count=1
 	printf "telnet finished\n" >> $logfile
@@ -80,10 +69,6 @@ do
 
 	verifyEmailsFromFile $filename
 	res=$?
-	printf "\nverifyEmailsFromFile returned: $res\n"
-	printf ".......DONE file: $filename\n"
-
-	printf ".......DONE file: $filename\n\n\n" >> $logfile
 
 	# Remove file
 	if [ $res -eq 0 ]
@@ -94,8 +79,44 @@ do
 	# Log timeout
     if [ $res -eq 1 ]
         then
-       		printf "$filename : timeout : $res\n\n\n" >> $problem_domains
+       		printf "$filename : Timeout. Returned code : $res\n\n\n" >> $problem_domains
 	fi
+
+	# Log
+	if [ $res -eq 0 ]
+        then
+       		printf "Success (All emails was processed)\n" >> $logfile
+	fi
+    if [ $res -eq 1 ]
+        then
+       		printf "Domain skipped (Timeout)\n" >> $logfile
+	fi
+	if [ $res -eq 2 ]
+        then
+       		printf "Domain skipped (Ip blocked)\n" >> $logfile
+	fi
+	if [ $res -eq 3 ]
+        then
+       		printf "Domain skipped (torsocks error)\n" >> $logfile
+	fi
+	if [ $res -eq 4 ]
+        then
+       		printf "Domain skipped (Cannot find your hostname)\n" >> $logfile
+	fi
+	if [ $res -eq 5 ]
+        then
+       		printf "Domain skipped (Connection closed by foreign host)\n" >> $logfile
+	fi
+	if [ $res -eq 6 ]
+        then
+       		printf "Domain skipped (Protocol error)\n" >> $logfile
+	fi
+
+
+	printf "\nverifyEmailsFromFile returned: $res\n"
+	printf "..............DONE file..............\n"
+
+	printf "..............DONE file..............\n\n\n" >> $logfile
 done
 
 chmod 777 $logfile
