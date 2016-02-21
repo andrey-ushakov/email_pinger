@@ -2,13 +2,12 @@
 
 basePath=$1
 
-# remove
-rm -r ${basePath}/data*/src*/_valid_emails
+# > means overwrite ; >> means append
 
-rm -r ${basePath}/data*/src*/_invalid_emails
-rm -r ${basePath}/data*/_invalid_emails
+cat ${basePath}/data*/src*/_valid_emails > ${basePath}/all_valid_emails
 
-rm -r ${basePath}/data*/src*/_invalid_domains
-rm -r ${basePath}/data*/_invalid_domains
+cat ${basePath}/data*/src*/_invalid_emails > ${basePath}/all_invalid_emails
+cat ${basePath}/data*/_invalid_emails >> ${basePath}/all_invalid_emails
 
-rm -r ${basePath}/data*/src*/_done
+cat ${basePath}/data*/src*/_invalid_domains > ${basePath}/all_invalid_domains
+cat ${basePath}/data*/_invalid_domains >> ${basePath}/all_invalid_domains
