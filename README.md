@@ -34,6 +34,7 @@ Output:
 #### 3 Merge files & remove temp files ####
 
 Usage (merge): sudo bash mergeResults.sh \<path_to_data_directory\>
+
 Usage (remove temp files): sudo bash removeMergedInputs.sh \<path_to_data_directory\>
 
 Output:
