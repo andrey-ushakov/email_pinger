@@ -1,6 +1,6 @@
 Usage: sudo bash bash.sh "path/to/domain_*/files"
 
-1. PHP Preprocessing
+#### 1 PHP Preprocessing ####
 
 Input:
 - File named "emails". Each line has one email address to check.
@@ -16,7 +16,8 @@ Output:
 - File _invalid_domains
 - Emails grouped by folders
 
-2. Run pingers
+
+#### 2 Run pingers ####
 
 Usage: sudo bash runPingers.sh \<path_to_data\<N\>_directory\>
 
@@ -30,7 +31,7 @@ Output:
 - Domain file that wasn't checked
 
 
-3. Merge files & remove temp files
+#### 3 Merge files & remove temp files ####
 
 Usage (merge): sudo bash mergeResults.sh \<path_to_data_directory\>
 Usage (remove temp files): sudo bash removeMergedInputs.sh \<path_to_data_directory\>
