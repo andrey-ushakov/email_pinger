@@ -1,4 +1,4 @@
-Usage: sudo bash bash.sh "path/to/domain_*/files"
+Usage: bash bash.sh "path/to/domain_*/files"
 
 #### 1 PHP Preprocessing ####
 
@@ -19,7 +19,7 @@ Output:
 
 #### 2 Run pingers ####
 
-Usage: sudo bash runPingers.sh \<path_to_data\<N\>_directory\>
+Usage: bash runPingers.sh \<path_to_data\<N\>_directory\>
 
 Output:
 - Checks emails in dataNdirectory
@@ -33,9 +33,9 @@ Output:
 
 #### 3 Merge files & remove temp files ####
 
-Usage (merge): sudo bash mergeResults.sh \<path_to_data_directory\>
+Usage (merge): bash mergeResults.sh \<path_to_data_directory\>
 
-Usage (remove temp files): sudo bash removeMergedInputs.sh \<path_to_data_directory\>
+Usage (remove temp files): bash removeMergedInputs.sh \<path_to_data_directory\>
 
 Output:
 - Final _valid_emails file
